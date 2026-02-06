@@ -37,16 +37,16 @@
             display: block; 
         }
         
-        /* Gemini Logo: Lifted higher (from -5px to -8px) */
+        /* Gemini Logo: Lifted higher (top: -8px) */
         .gemini-inline-logo {
             height: 1.5em; 
             vertical-align: middle; 
             margin: 0 8px; 
             position: relative;
-            top: -8px; /* UPDATED: Higher up */
+            top: -8px; 
         }
 
-        /* Headings */
+        /* Headings: Bold */
         h1 { 
             color: var(--text); 
             margin-bottom: 10px; 
@@ -72,7 +72,7 @@
             font-weight: 400; 
         }
         
-        /* Inputs & Buttons */
+        /* Inputs */
         textarea { 
             width: 90%; 
             padding: 15px; 
@@ -120,7 +120,7 @@
         }
         .btn-action:hover { background: #3367d6; }
 
-        /* NEW SHARED CLASS: For Get Started, Next, and Ask Gemini */
+        /* Shared Class for Action Buttons (Centered & Sized) */
         .btn-centered-action {
             width: auto;           /* Not full width */
             padding: 12px 30px;    /* Comfortable padding */
@@ -181,7 +181,7 @@
         <h2>What's the vibe?</h2>
         <textarea id="userPrompt" placeholder="e.g. I want something spicy..."></textarea>
         
-        <button class="btn btn-action btn-centered-action" onclick="callGeminiAuto()">Ask Gemini</button>
+        <button class="btn btn-action btn-centered-action" onclick="callCloudflareWorker()">Ask Gemini</button>
         
         <div id="status-log"></div>
         <div id="error-box" class="hidden"></div>
@@ -190,7 +190,7 @@
     <div id="loading" class="container hidden">
         <h2>Consulting Gemini...</h2>
         <div class="loader"></div>
-        <p id="loading-text">Connecting...</p>
+        <p id="loading-text">Connecting securely...</p>
     </div>
 
     <div id="results" class="container hidden">
@@ -201,10 +201,10 @@
     </div>
 
 <script>
-    // ==========================================
-    // CONFIGURATION
-    // ==========================================
-    const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY"; 
+    // =================================================================
+    // CONFIGURATION: YOUR SECURE CLOUDFLARE WORKER URL
+    // =================================================================
+    const WORKER_URL = "https://gemenu-gemini-proxy.andrew-520.workers.dev"; 
 
     // FULL MENU DATA 
     const menuData = `[
@@ -254,56 +254,17 @@
         }
     };
 
-    // --- AUTO-DISCOVERY FUNCTION ---
-    async function findValidModel() {
-        const log = document.getElementById('status-log');
-        log.style.display = 'block';
-        log.innerText = "🔍 Auto-detecting valid AI models...";
-
-        try {
-            const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`;
-            const response = await fetch(listUrl);
-            const data = await response.json();
-
-            if (!data.models) {
-                throw new Error("Could not list models. API Key might be invalid.");
-            }
-
-            const validModel = data.models.find(m => 
-                m.name.includes("gemini") && 
-                m.supportedGenerationMethods && 
-                m.supportedGenerationMethods.includes("generateContent")
-            );
-
-            if (validModel) {
-                const cleanName = validModel.name.replace("models/", "");
-                log.innerText = `✅ Found valid model: ${cleanName}`;
-                return cleanName;
-            } else {
-                throw new Error("No Gemini models found enabled for this key.");
-            }
-
-        } catch (e) {
-            log.innerText = "⚠️ Auto-detect failed. Defaulting to gemini-1.5-flash";
-            return "gemini-1.5-flash"; 
-        }
-    }
-
-    // --- MAIN API CALL ---
-    window.callGeminiAuto = async () => {
+    // --- MAIN CALL TO CLOUDFLARE WORKER ---
+    window.callCloudflareWorker = async () => {
         const errorBox = document.getElementById('error-box');
         errorBox.classList.add('hidden');
         document.getElementById('step-3').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
 
         try {
-            const modelName = await findValidModel();
-            
-            document.getElementById('loading-text').innerText = `Consulting Gemini (${modelName})...`;
-
             const userText = document.getElementById('userPrompt').value;
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
-
+            
+            // We send the full instruction set to Cloudflare
             const promptText = `
             You are a helpful buffet assistant for an event.
             Menu: ${menuData}
@@ -323,11 +284,13 @@
             }
             `;
 
+            // Prepare the payload
             const payload = {
                 contents: [{ parts: [{ text: promptText }] }]
             };
 
-            const response = await fetch(API_URL, {
+            // Call YOUR Cloudflare Worker (which holds the API Key)
+            const response = await fetch(WORKER_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
