@@ -129,3 +129,94 @@
         errorBox.classList.add('hidden');
         document.getElementById('step-3').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
+
+        const userText = document.getElementById('userPrompt').value;
+        const selectedModel = document.getElementById('modelSelect').value;
+
+        // Construct the URL dynamically
+        const API_URL = `${BASE_URL}${selectedModel}:generateContent?key=${API_KEY}`;
+
+        // Construct the prompt
+        const promptText = `
+        You are a buffet assistant.
+        Menu: ${menuData}
+        User Restrictions: ${userAllergies.join(", ")}
+        User Request: "${userText}"
+        
+        Task: Pick 3 items. 
+        IMPORTANT: Return ONLY valid JSON. No markdown formatting.
+        JSON Structure:
+        {
+            "reasoning": "One sentence explaining choice.",
+            "dishes": [ { "name": "Dish Name", "desc": "Short description" } ]
+        }
+        `;
+
+        // The Data Payload
+        const payload = {
+            contents: [{
+                parts: [{ text: promptText }]
+            }]
+        };
+
+        try {
+            console.log("Trying model:", selectedModel);
+            
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            // Check for API Errors
+            if (!response.ok) {
+                // If it fails, throw error so we can show it
+                throw new Error(`Model ${selectedModel} failed: ${data.error?.message || response.statusText}`);
+            }
+
+            // Extract the text answer
+            const aiText = data.candidates[0].content.parts[0].text;
+            console.log("Raw AI Response:", aiText);
+
+            // Clean and Parse JSON
+            const firstBrace = aiText.indexOf('{');
+            const lastBrace = aiText.lastIndexOf('}');
+            if (firstBrace === -1) throw new Error("AI did not return JSON");
+            
+            const cleanJson = aiText.substring(firstBrace, lastBrace + 1);
+            const resultData = JSON.parse(cleanJson);
+
+            renderResults(resultData);
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
+            errorBox.classList.remove('hidden');
+            errorBox.innerText = "⚠️ " + error.message + "\n\n👉 TIP: Try selecting a different 'System Brain' in the dropdown above!";
+        }
+    };
+
+    function renderResults(data) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('results').classList.remove('hidden');
+
+        document.getElementById('ai-thought').innerText = data.reasoning;
+        const list = document.getElementById('recommendation-list');
+        list.innerHTML = "";
+
+        data.dishes.forEach(dish => {
+            const div = document.createElement('div');
+            div.className = 'menu-item';
+            div.innerHTML = `
+                <div class="item-name">${dish.name}</div>
+                <div class="item-desc">${dish.desc}</div>
+            `;
+            list.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
