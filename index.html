@@ -25,11 +25,10 @@
             text-align: center;
         }
         
-        /* Card styling removed for cleaner "Google" look, simplified to clean whitespace */
         .container { padding: 10px; }
         .hidden { display: none !important; }
         
-        /* Logos */
+        /* Event Logo (Top) */
         .event-logo { 
             max-height: 80px; 
             margin-bottom: 20px; 
@@ -38,10 +37,11 @@
             margin-right: auto;
         }
         
+        /* Gemini Inline Logo (Text flow) */
         .gemini-inline-logo {
-            height: 1.4em; /* Matches text height */
+            height: 1.6em; /* Adjusted slightly for PNG alignment */
             vertical-align: middle;
-            margin-bottom: 4px; /* Slight optical adjustment */
+            margin-bottom: 4px; 
         }
 
         h1 { color: var(--text); margin-bottom: 10px; font-weight: 400; font-size: 1.8rem; }
@@ -115,20 +115,11 @@
 
     <div id="step-1" class="container">
         
-        <img src="images/eventLogo.png" alt="Event Logo" class="event-logo">
+        <img src="https://via.placeholder.com/150x80?text=EVENT+LOGO" alt="Event Logo" class="event-logo">
         <h1>Welcome to lunch</h1>
         <p>
             Let 
-            <svg class="gemini-inline-logo" viewBox="0 0 178 60" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12.96 46.56V13.68H16.8V46.56H12.96ZM36.1738 47.04C33.6138 47.04 31.2938 46.512 29.2138 45.456C27.1338 44.384 25.4378 42.944 24.1258 41.136C22.8298 39.312 22.1818 37.232 22.1818 34.896C22.1818 32.544 22.8298 30.48 24.1258 28.704C25.4378 26.912 27.1338 25.488 29.2138 24.432C31.2938 23.36 33.6138 22.824 36.1738 22.824C38.6058 22.824 40.7178 23.304 42.5098 24.264C44.3018 25.208 45.6938 26.472 46.6858 28.056L43.4698 29.976C42.8458 28.904 41.9338 28.024 40.7338 27.336C39.5338 26.648 38.0778 26.304 36.3658 26.304C34.7338 26.304 33.2298 26.664 31.8538 27.384C30.4938 28.104 29.3898 29.088 28.5418 30.336C27.6938 31.584 27.2698 33.008 27.2698 34.608V35.232C27.2698 36.912 27.6938 38.384 28.5418 39.648C29.3898 40.896 30.4938 41.88 31.8538 42.576C33.2298 43.272 34.7338 43.62 36.3658 43.62C38.0138 43.62 39.3978 43.284 40.5178 42.612C41.6538 41.94 42.5818 41.052 43.3018 39.948L46.4698 41.772C45.4298 43.372 44.0298 44.668 42.2698 45.66C40.5258 46.58 38.4938 47.04 36.1738 47.04ZM66.4495 46.56V13.68H70.2895V18.144C71.0415 16.544 72.1615 15.28 73.6495 14.352C75.1375 13.408 76.8495 12.936 78.7855 12.936C80.6095 12.936 82.2655 13.336 83.7535 14.136C85.2415 14.92 86.3775 16.032 87.1615 17.472C88.0895 16.08 89.4095 14.976 91.1215 14.16C92.8335 13.344 94.7535 12.936 96.8815 12.936C100.274 12.936 102.762 13.912 104.346 15.864C105.946 17.8 106.746 20.6 106.746 24.264V46.56H102.906V24.84C102.906 22.312 102.402 20.456 101.394 19.272C100.402 18.088 98.8975 17.496 96.8815 17.496C94.8655 17.496 93.1855 18.152 91.8415 19.464C90.5135 20.76 89.8495 22.456 89.8495 24.552V46.56H86.0095V24.84C86.0095 22.312 85.5055 20.456 84.4975 19.272C83.5055 18.088 81.9935 17.496 79.9615 17.496C77.9295 17.496 76.2415 18.152 74.8975 19.464C73.5695 20.76 72.9055 22.456 72.9055 24.552V46.56H69.0655H66.4495ZM116.64 11.04C115.936 11.04 115.344 10.792 114.864 10.296C114.384 9.784 114.144 9.176 114.144 8.472C114.144 7.752 114.384 7.144 114.864 6.648C115.344 6.136 115.936 5.88 116.64 5.88C117.344 5.88 117.936 6.136 118.416 6.648C118.912 7.144 119.16 7.752 119.16 8.472C119.16 9.176 118.912 9.784 118.416 10.296C117.936 10.792 117.344 11.04 116.64 11.04ZM114.72 46.56V13.68H118.56V46.56H114.72ZM130.687 46.56V13.68H134.527V18.288C135.599 16.512 136.959 15.168 138.607 14.256C140.271 13.344 142.159 12.888 144.271 12.888C147.231 12.888 149.527 13.784 151.159 15.576C152.807 17.368 153.631 19.864 153.631 23.064V46.56H149.791V23.64C149.791 21.672 149.271 20.12 148.231 18.984C147.207 17.832 145.751 17.256 143.863 17.256C141.799 17.256 140.087 17.928 138.727 19.272C137.367 20.616 136.687 22.328 136.687 24.408V46.56H132.847H130.687ZM163.674 11.04C162.97 11.04 162.378 10.792 161.898 10.296C161.418 9.784 161.178 9.176 161.178 8.472C161.178 7.752 161.418 7.144 161.898 6.648C162.378 6.136 162.97 5.88 163.674 5.88C164.378 5.88 164.97 6.136 165.45 6.648C165.946 7.144 166.194 7.752 166.194 8.472C166.194 9.176 165.946 9.784 165.45 10.296C164.97 10.792 164.378 11.04 163.674 11.04ZM161.754 46.56V13.68H165.594V46.56H161.754Z" fill="url(#paint0_linear)"/>
-                <defs>
-                    <linearGradient id="paint0_linear" x1="0" y1="0" x2="178" y2="60" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#4285F4"/>
-                        <stop offset="0.5" stop-color="#9B51E0"/>
-                        <stop offset="1" stop-color="#FF5D55"/>
-                    </linearGradient>
-                </defs>
-            </svg>
+            <img src="geminiLogo.png" alt="Gemini" class="gemini-inline-logo">
             help you decide
         </p>
         <button class="btn btn-action" onclick="nextStep(1)">Get Started</button>
@@ -137,7 +128,7 @@
     <div id="step-2" class="container hidden">
         <h2>Any dietaries?</h2>
         
-        <button class="btn" id="btn-none" onclick="selectNone(this)">None</button>
+        <button class="btn" id="btn-none" onclick="selectNone(this)">🚫 None</button>
         
         <button class="btn toggle-btn" onclick="toggleDiet(this, 'Vegetarian')">🥦 Vegetarian</button>
         <button class="btn toggle-btn" onclick="toggleDiet(this, 'Vegan')">🌱 Vegan</button>
@@ -177,7 +168,7 @@
     // ==========================================
     const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY"; 
 
-    // FULL MENU DATA (Replace this list with your full CSV data if you have more)
+    // FULL MENU DATA 
     const menuData = `[
         { "name": "Smoked Pumpkin Soup", "allergens": "Nuts, Dairy" },
         { "name": "Tamatar Dal Ka Shorba", "allergens": "None" },
