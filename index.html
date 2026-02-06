@@ -30,25 +30,37 @@
         
         /* --- LOGO STYLING --- */
         
-        /* Event Logo: Made smaller and centered */
         .event-logo { 
-            max-height: 60px; /* Reduced from 80px */
+            max-height: 60px; 
             width: auto;
             margin: 0 auto 20px auto; 
             display: block; 
         }
         
-        /* Gemini Logo: Adjusted alignment and breathing room */
+        /* Gemini Logo: Lifted higher with top: -5px */
         .gemini-inline-logo {
             height: 1.5em; 
-            vertical-align: middle; /* Aligns center of image with text */
-            margin: 0 8px; /* Breathing room on left and right */
+            vertical-align: middle; 
+            margin: 0 8px; 
             position: relative;
-            top: -2px; /* Micro-adjustment to lift the baseline slightly */
+            top: -5px; /* Moves the logo UP */
         }
 
-        h1 { color: var(--text); margin-bottom: 10px; font-weight: 400; font-size: 1.8rem; }
-        h2 { font-size: 1.4rem; margin-bottom: 0.5rem; color: var(--text); font-weight: 400; }
+        /* Headings: Updated to Bold (700) */
+        h1 { 
+            color: var(--text); 
+            margin-bottom: 10px; 
+            font-weight: 700; /* BOLD */
+            font-size: 1.8rem; 
+        }
+        
+        h2 { 
+            font-size: 1.4rem; 
+            margin-bottom: 0.5rem; 
+            color: var(--text); 
+            font-weight: 700; /* BOLD */
+        }
+        
         p { color: #5f6368; margin-bottom: 30px; font-size: 1.1rem; }
         
         /* Helper text for dietaries */
@@ -57,6 +69,7 @@
             color: #70757a;
             margin-bottom: 20px;
             margin-top: 0;
+            font-weight: 400; /* Keep subtitle normal */
         }
         
         /* Inputs & Buttons */
@@ -107,12 +120,12 @@
         }
         .btn-action:hover { background: #3367d6; }
 
-        /* SPECIAL STYLING FOR "GET STARTED" BUTTON (Smaller) */
+        /* "Get Started" Button (Smaller) */
         #btn-start {
-            width: auto;           /* Not full width */
-            padding: 12px 30px;    /* Comfortable padding */
-            min-width: 180px;      /* Minimum size */
-            margin: 30px auto 0 auto; /* Center it */
+            width: auto;           
+            padding: 12px 30px;    
+            min-width: 180px;      
+            margin: 30px auto 0 auto; 
             display: block;
         }
         
