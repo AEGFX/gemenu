@@ -13,130 +13,88 @@
         
         h1 { color: var(--primary); margin-bottom: 10px; margin-top: 0; }
         h2 { font-size: 1.2rem; margin-bottom: 1rem; color: #444; }
-        p { color: #666; margin-bottom: 20px; }
         
-        /* Inputs & Buttons */
         textarea { width: 90%; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-family: inherit; margin: 10px 0; resize: vertical; min-height: 80px; font-size: 1rem;}
-        textarea:focus { border-color: var(--primary); outline: none; }
         
         .btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 50px; background: #fff; font-size: 1rem; cursor: pointer; transition: 0.2s; font-weight: 600; color: #555; }
-        .btn:hover { background: #f9f9f9; }
         .btn.selected { background: #d0e1fd; color: var(--primary); border-color: var(--primary); }
+        .btn-action { background: var(--primary); color: white; border: none; margin-top: 15px; }
         
-        .btn-action { background: var(--primary); color: white; border: none; margin-top: 15px; box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3); }
-        .btn-action:hover { background: #3367d6; }
-        
-        /* Loader */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Results Styling */
-        .ai-reasoning { font-style: italic; color: #555; background: #eef; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; border-left: 5px solid var(--primary); }
-        
-        .menu-item { text-align: left; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .menu-item { text-align: left; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
         .item-name { font-weight: bold; font-size: 1.1rem; color: #222; }
-        .item-cal { font-size: 0.75rem; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; }
-        .item-desc { font-size: 0.95rem; color: #555; line-height: 1.4; }
-        .warning { color: #D32F2F; font-size: 0.8rem; font-weight: bold; margin-top: 5px; display: block;}
+        .item-desc { font-size: 0.95rem; color: #555; margin-top: 5px; }
+        
+        #error-box { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: left; font-size: 0.9rem; border: 1px solid #ef9a9a;}
     </style>
-    <script type="importmap">
-      {
-        "imports": {
-          "@google/generative-ai": "https://esm.run/@google/generative-ai"
-        }
-      }
-    </script>
 </head>
 <body>
 
     <div id="step-1" class="card">
         <h1>Buffet Genius 🍽️</h1>
-        <p>Too many options? Tell me what you're craving and I'll build your plate.</p>
+        <p>Too many options? Tell me what you're craving.</p>
         <button class="btn btn-action" onclick="nextStep(1)">Get Started</button>
     </div>
 
     <div id="step-2" class="card hidden">
-        <h2>Any dietary needs?</h2>
-        <p style="margin-bottom: 10px; font-size: 0.9rem;">Select all that apply:</p>
+        <h2>Dietary Needs?</h2>
         <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Gluten')">🚫 Gluten Free</button>
         <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Dairy')">🚫 Dairy Free</button>
         <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Nuts')">🚫 Nut Free</button>
         <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Vegetarian')">🥬 Vegetarian</button>
-        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Vegan')">🌱 Vegan</button>
         <button class="btn btn-action" onclick="nextStep(2)">Next</button>
     </div>
 
     <div id="step-3" class="card hidden">
         <h2>What's the vibe?</h2>
-        <p style="font-size:0.9rem;">Be honest! (e.g. "I'm hungover and need carbs", "I want something spicy", or "Just a light healthy snack")</p>
-        <textarea id="userPrompt" placeholder="Type here..."></textarea>
-        <button class="btn btn-action" onclick="callGemini()">Ask the Chef</button>
+        <textarea id="userPrompt" placeholder="e.g. I want something spicy..."></textarea>
+        <button class="btn btn-action" onclick="callGeminiDirect()">Ask the Chef</button>
+        <div id="error-box" class="hidden"></div>
     </div>
 
     <div id="loading" class="card hidden">
         <h2>Consulting the Chef...</h2>
         <div class="loader"></div>
-        <p>Analyzing 30+ items against your preferences.</p>
     </div>
 
     <div id="results" class="hidden">
         <div class="card">
-            <h1 style="font-size: 1.5rem;">Your Recommendations</h1>
-            <div id="ai-thought" class="ai-reasoning"></div>
+            <h1>Recommendations</h1>
+            <div id="ai-thought" style="background:#eef; padding:15px; border-radius:12px; margin-bottom:20px; text-align:left; font-style:italic;"></div>
             <div id="recommendation-list"></div>
             <button class="btn" onclick="location.reload()">Start Over</button>
         </div>
     </div>
 
-<script type="module">
-    import { GoogleGenerativeAI } from "@google/generative-ai";
-
-    // ============================================================
-    // 👇 YOUR API KEY IS INSERTED BELOW 👇
+<script>
+    // ==========================================
+    // API KEY CONFIGURATION
+    // ==========================================
     const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY";
-    // ============================================================
+    
+    // We are using the Direct REST API URL (No library needed)
+    // Using 'gemini-1.5-flash' which is the standard, fast model
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-    // Full Menu Data from your CSV
     const menuData = `[
-        { "name": "Smoked Pumpkin Soup", "allergens": "Nuts, Dairy", "cal": 85 },
-        { "name": "Tamatar Dal Ka Shorba", "allergens": "None", "cal": 45 },
-        { "name": "Assorted Bread Rolls", "allergens": "Gluten, Dairy", "cal": 265 },
-        { "name": "Chickpea, Cucumber & Feta Salad", "allergens": "Dairy", "cal": 140 },
-        { "name": "Arugula, Avocado & Grapes Salad", "allergens": "None", "cal": 115 },
-        { "name": "Mexican Quinoa Salad", "allergens": "None", "cal": 120 },
-        { "name": "Greek Salad", "allergens": "Dairy", "cal": 105 },
-        { "name": "Classic Caprese Salad", "allergens": "Dairy", "cal": 165 },
-        { "name": "Som Tum Salad", "allergens": "Nuts", "cal": 75 },
-        { "name": "Live Cheese Collection", "allergens": "Dairy, Gluten", "cal": 350 },
-        { "name": "Winter Veg Lasagna", "allergens": "Gluten, Dairy", "cal": 180 },
-        { "name": "Ratatouille", "allergens": "None", "cal": 65 },
-        { "name": "Pommes Lyonnaise", "allergens": "Dairy", "cal": 125 },
-        { "name": "Wild Mushroom Fricasse", "allergens": "Dairy", "cal": 110 },
-        { "name": "Pesto Cottage Cheese Steaks", "allergens": "Dairy, Nuts", "cal": 230 },
-        { "name": "Paneer Makhani", "allergens": "Dairy, Nuts", "cal": 210 },
-        { "name": "Tawa Soyachaap", "allergens": "Gluten, Dairy", "cal": 185 },
-        { "name": "Pindi Cholley", "allergens": "None", "cal": 155 },
-        { "name": "Dum Waale Aloo", "allergens": "Dairy", "cal": 135 },
-        { "name": "Punjabi Kadi Pakoda", "allergens": "Dairy", "cal": 120 },
-        { "name": "Makhana Kaju Matar", "allergens": "Nuts, Dairy", "cal": 175 },
-        { "name": "Khumbh Hara Pyaz", "allergens": "None", "cal": 85 },
-        { "name": "Awadhi Subz Biryani", "allergens": "Dairy", "cal": 145 },
-        { "name": "Burrani/Kheera Raita", "allergens": "Dairy", "cal": 60 },
-        { "name": "Mapu Tofu", "allergens": "None", "cal": 95 },
-        { "name": "Garlic Fried Rice", "allergens": "None", "cal": 165 },
-        { "name": "Veg Hakka Noodles", "allergens": "Gluten", "cal": 155 },
-        { "name": "Thai Curries (Green/Red)", "allergens": "None", "cal": 130 },
-        { "name": "Chocolate Caramel Éclair", "allergens": "Gluten, Dairy", "cal": 320 },
-        { "name": "Hazelnut Delight", "allergens": "Nuts, Dairy", "cal": 380 },
-        { "name": "Tiramisu", "allergens": "Dairy, Gluten", "cal": 290 },
-        { "name": "Basque Cheese Cake", "allergens": "Dairy", "cal": 315 },
-        { "name": "Gajar Ka Halwa", "allergens": "Dairy, Nuts", "cal": 245 }
+        { "name": "Smoked Pumpkin Soup", "allergens": "Nuts, Dairy" },
+        { "name": "Tamatar Dal Ka Shorba", "allergens": "None" },
+        { "name": "Assorted Bread Rolls", "allergens": "Gluten, Dairy" },
+        { "name": "Chickpea, Cucumber & Feta Salad", "allergens": "Dairy" },
+        { "name": "Arugula, Avocado & Grapes Salad", "allergens": "None" },
+        { "name": "Mexican Quinoa Salad", "allergens": "None" },
+        { "name": "Winter Veg Lasagna", "allergens": "Gluten, Dairy" },
+        { "name": "Paneer Makhani", "allergens": "Dairy, Nuts" },
+        { "name": "Thai Curries (Green/Red)", "allergens": "None" },
+        { "name": "Chocolate Caramel Éclair", "allergens": "Gluten, Dairy" },
+        { "name": "Hazelnut Delight", "allergens": "Nuts, Dairy" },
+        { "name": "Basque Cheese Cake", "allergens": "Dairy" }
     ]`;
 
     let userAllergies = [];
 
-    // Global helper functions
     window.nextStep = (current) => {
         document.getElementById(`step-${current}`).classList.add('hidden');
         document.getElementById(`step-${current + 1}`).classList.remove('hidden');
@@ -144,4 +102,102 @@
 
     window.toggleAllergy = (btn, allergy) => {
         if (userAllergies.includes(allergy)) {
-            userAllergies = userAllergies.filter(a => a !== allergy
+            userAllergies = userAllergies.filter(a => a !== allergy);
+            btn.classList.remove('selected');
+        } else {
+            userAllergies.push(allergy);
+            btn.classList.add('selected');
+        }
+    };
+
+    // --- THE NEW DIRECT API CALL FUNCTION ---
+    window.callGeminiDirect = async () => {
+        const errorBox = document.getElementById('error-box');
+        errorBox.classList.add('hidden');
+        document.getElementById('step-3').classList.add('hidden');
+        document.getElementById('loading').classList.remove('hidden');
+
+        const userText = document.getElementById('userPrompt').value;
+
+        // Construct the prompt
+        const promptText = `
+        You are a buffet assistant.
+        Menu: ${menuData}
+        User Restrictions: ${userAllergies.join(", ")}
+        User Request: "${userText}"
+        
+        Task: Pick 3 items. 
+        IMPORTANT: Return ONLY valid JSON. No markdown formatting.
+        JSON Structure:
+        {
+            "reasoning": "One sentence explaining choice.",
+            "dishes": [ { "name": "Dish Name", "desc": "Short description" } ]
+        }
+        `;
+
+        // The Data Payload
+        const payload = {
+            contents: [{
+                parts: [{ text: promptText }]
+            }]
+        };
+
+        try {
+            // DIRECT FETCH REQUEST (Replaces the Google Library)
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            // Check for API Errors (400, 404, etc)
+            if (!response.ok) {
+                throw new Error(`API Error: ${data.error?.message || response.statusText}`);
+            }
+
+            // Extract the text answer
+            const aiText = data.candidates[0].content.parts[0].text;
+            console.log("Raw AI Response:", aiText);
+
+            // Clean and Parse JSON
+            const firstBrace = aiText.indexOf('{');
+            const lastBrace = aiText.lastIndexOf('}');
+            if (firstBrace === -1) throw new Error("AI did not return JSON");
+            
+            const cleanJson = aiText.substring(firstBrace, lastBrace + 1);
+            const resultData = JSON.parse(cleanJson);
+
+            renderResults(resultData);
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
+            errorBox.classList.remove('hidden');
+            errorBox.innerText = "⚠️ Error: " + error.message;
+        }
+    };
+
+    function renderResults(data) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('results').classList.remove('hidden');
+
+        document.getElementById('ai-thought').innerText = data.reasoning;
+        const list = document.getElementById('recommendation-list');
+        list.innerHTML = "";
+
+        data.dishes.forEach(dish => {
+            const div = document.createElement('div');
+            div.className = 'menu-item';
+            div.innerHTML = `
+                <div class="item-name">${dish.name}</div>
+                <div class="item-desc">${dish.desc}</div>
+            `;
+            list.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
