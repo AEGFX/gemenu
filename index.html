@@ -3,33 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Menu Concierge</title>
+    <title>Event Menu Assistant</title>
     <style>
         :root { --primary: #4285F4; --bg: #f0f4f8; --card: #ffffff; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: #333; padding: 20px; max-width: 500px; margin: 0 auto; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #333; padding: 20px; max-width: 500px; margin: 0 auto; line-height: 1.5; }
         
         .card { background: var(--card); padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         
-        h1 { color: var(--primary); margin-bottom: 10px; }
+        h1 { color: var(--primary); margin-bottom: 10px; margin-top: 0; }
         h2 { font-size: 1.2rem; margin-bottom: 1rem; color: #444; }
+        p { color: #666; margin-bottom: 20px; }
         
-        /* Interactive Elements */
-        textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: inherit; margin: 10px 0; resize: vertical; min-height: 80px;}
-        .btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 50px; background: #e0e0e0; font-size: 1rem; cursor: pointer; transition: 0.2s; font-weight: 600; }
-        .btn.selected { background: #d0e1fd; color: var(--primary); border: 2px solid var(--primary); }
-        .btn-action { background: var(--primary); color: white; margin-top: 15px; box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3); }
-        .btn-action:disabled { background: #ccc; cursor: not-allowed; }
-
+        /* Inputs & Buttons */
+        textarea { width: 90%; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-family: inherit; margin: 10px 0; resize: vertical; min-height: 80px; font-size: 1rem;}
+        textarea:focus { border-color: var(--primary); outline: none; }
+        
+        .btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 50px; background: #fff; font-size: 1rem; cursor: pointer; transition: 0.2s; font-weight: 600; color: #555; }
+        .btn:hover { background: #f9f9f9; }
+        .btn.selected { background: #d0e1fd; color: var(--primary); border-color: var(--primary); }
+        
+        .btn-action { background: var(--primary); color: white; border: none; margin-top: 15px; box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3); }
+        .btn-action:hover { background: #3367d6; }
+        
         /* Loader */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Results */
-        .ai-reasoning { font-style: italic; color: #555; background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; border-left: 4px solid var(--primary); }
-        .menu-item { text-align: left; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
+        /* Results Styling */
+        .ai-reasoning { font-style: italic; color: #555; background: #eef; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; border-left: 5px solid var(--primary); }
+        
+        .menu-item { text-align: left; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .item-name { font-weight: bold; font-size: 1.1rem; color: #222; }
-        .item-desc { font-size: 0.9rem; color: #666; margin-top: 5px; }
+        .item-cal { font-size: 0.75rem; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; }
+        .item-desc { font-size: 0.95rem; color: #555; line-height: 1.4; }
+        .warning { color: #D32F2F; font-size: 0.8rem; font-weight: bold; margin-top: 5px; display: block;}
     </style>
     <script type="importmap">
       {
@@ -42,36 +51,38 @@
 <body>
 
     <div id="step-1" class="card">
-        <h1>AI Food Concierge 🤖</h1>
-        <p>I'll read the menu so you don't have to.</p>
-        <button class="btn btn-action" onclick="nextStep(1)">Start</button>
+        <h1>Buffet Genius 🍽️</h1>
+        <p>Too many options? Tell me what you're craving and I'll build your plate.</p>
+        <button class="btn btn-action" onclick="nextStep(1)">Get Started</button>
     </div>
 
     <div id="step-2" class="card hidden">
-        <h2>Dietary Requirements?</h2>
+        <h2>Any dietary needs?</h2>
+        <p style="margin-bottom: 10px; font-size: 0.9rem;">Select all that apply:</p>
         <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Gluten')">🚫 Gluten Free</button>
         <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Dairy')">🚫 Dairy Free</button>
         <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Nuts')">🚫 Nut Free</button>
         <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Vegetarian')">🥬 Vegetarian</button>
+        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Vegan')">🌱 Vegan</button>
         <button class="btn btn-action" onclick="nextStep(2)">Next</button>
     </div>
 
     <div id="step-3" class="card hidden">
-        <h2>Tell me what you want...</h2>
-        <p style="font-size:0.9rem; color:#666;">Be honest! (e.g., "I'm super hungry and love spicy food" or "I just want something sweet and light")</p>
+        <h2>What's the vibe?</h2>
+        <p style="font-size:0.9rem;">Be honest! (e.g. "I'm hungover and need carbs", "I want something spicy", or "Just a light healthy snack")</p>
         <textarea id="userPrompt" placeholder="Type here..."></textarea>
         <button class="btn btn-action" onclick="callGemini()">Ask the Chef</button>
     </div>
 
     <div id="loading" class="card hidden">
-        <h2>Thinking...</h2>
+        <h2>Consulting the Chef...</h2>
         <div class="loader"></div>
-        <p>Analyzing 30+ menu items against your request.</p>
+        <p>Analyzing 30+ items against your preferences.</p>
     </div>
 
     <div id="results" class="hidden">
         <div class="card">
-            <h1>Your Menu</h1>
+            <h1 style="font-size: 1.5rem;">Your Recommendations</h1>
             <div id="ai-thought" class="ai-reasoning"></div>
             <div id="recommendation-list"></div>
             <button class="btn" onclick="location.reload()">Start Over</button>
@@ -81,33 +92,51 @@
 <script type="module">
     import { GoogleGenerativeAI } from "@google/generative-ai";
 
-    // *** IMPORTANT: PASTE YOUR API KEY HERE ***
-    const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY"; 
-    // ******************************************
+    // ============================================================
+    // 👇 YOUR API KEY IS INSERTED BELOW 👇
+    const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY";
+    // ============================================================
 
-    const menuData = `
-    [
-        {"name": "Smoked Pumpkin Soup", "tags": "Nuts, Dairy, Starter, Comfort"},
-        {"name": "Tamatar Dal Ka Shorba", "tags": "Starter, Light, Healthy"},
-        {"name": "Assorted Bread Rolls", "tags": "Gluten, Dairy, Side, Carbs"},
-        {"name": "Chickpea, Cucumber & Feta Salad", "tags": "Dairy, Salad, Fresh"},
-        {"name": "Arugula, Avocado & Grapes Salad", "tags": "Vegan, Salad, Healthy"},
-        {"name": "Mexican Quinoa Salad", "tags": "Vegan, Salad, Spicy"},
-        {"name": "Winter Veg Lasagna", "tags": "Gluten, Dairy, Main, Heavy, Comfort"},
-        {"name": "Ratatouille", "tags": "Vegan, Main, Healthy, Light"},
-        {"name": "Paneer Makhani", "tags": "Dairy, Nuts, Main, Curry, Spicy, Comfort"},
-        {"name": "Thai Curries (Green/Red)", "tags": "Vegan, Main, Spicy, Coconut"},
-        {"name": "Awadhi Subz Biryani", "tags": "Dairy, Main, Rice, Heavy, Spicy"},
-        {"name": "Mapu Tofu", "tags": "Vegan, Main, Asian, Spicy"},
-        {"name": "Chocolate Caramel Éclair", "tags": "Gluten, Dairy, Dessert, Sweet"},
-        {"name": "Hazelnut Delight", "tags": "Nuts, Dairy, Dessert, Sweet"},
-        {"name": "Basque Cheese Cake", "tags": "Dairy, Dessert, Rich"}
-    ];` 
-    // (I shortened the list slightly for code brevity, but the AI will use whatever you put here)
+    // Full Menu Data from your CSV
+    const menuData = `[
+        { "name": "Smoked Pumpkin Soup", "allergens": "Nuts, Dairy", "cal": 85 },
+        { "name": "Tamatar Dal Ka Shorba", "allergens": "None", "cal": 45 },
+        { "name": "Assorted Bread Rolls", "allergens": "Gluten, Dairy", "cal": 265 },
+        { "name": "Chickpea, Cucumber & Feta Salad", "allergens": "Dairy", "cal": 140 },
+        { "name": "Arugula, Avocado & Grapes Salad", "allergens": "None", "cal": 115 },
+        { "name": "Mexican Quinoa Salad", "allergens": "None", "cal": 120 },
+        { "name": "Greek Salad", "allergens": "Dairy", "cal": 105 },
+        { "name": "Classic Caprese Salad", "allergens": "Dairy", "cal": 165 },
+        { "name": "Som Tum Salad", "allergens": "Nuts", "cal": 75 },
+        { "name": "Live Cheese Collection", "allergens": "Dairy, Gluten", "cal": 350 },
+        { "name": "Winter Veg Lasagna", "allergens": "Gluten, Dairy", "cal": 180 },
+        { "name": "Ratatouille", "allergens": "None", "cal": 65 },
+        { "name": "Pommes Lyonnaise", "allergens": "Dairy", "cal": 125 },
+        { "name": "Wild Mushroom Fricasse", "allergens": "Dairy", "cal": 110 },
+        { "name": "Pesto Cottage Cheese Steaks", "allergens": "Dairy, Nuts", "cal": 230 },
+        { "name": "Paneer Makhani", "allergens": "Dairy, Nuts", "cal": 210 },
+        { "name": "Tawa Soyachaap", "allergens": "Gluten, Dairy", "cal": 185 },
+        { "name": "Pindi Cholley", "allergens": "None", "cal": 155 },
+        { "name": "Dum Waale Aloo", "allergens": "Dairy", "cal": 135 },
+        { "name": "Punjabi Kadi Pakoda", "allergens": "Dairy", "cal": 120 },
+        { "name": "Makhana Kaju Matar", "allergens": "Nuts, Dairy", "cal": 175 },
+        { "name": "Khumbh Hara Pyaz", "allergens": "None", "cal": 85 },
+        { "name": "Awadhi Subz Biryani", "allergens": "Dairy", "cal": 145 },
+        { "name": "Burrani/Kheera Raita", "allergens": "Dairy", "cal": 60 },
+        { "name": "Mapu Tofu", "allergens": "None", "cal": 95 },
+        { "name": "Garlic Fried Rice", "allergens": "None", "cal": 165 },
+        { "name": "Veg Hakka Noodles", "allergens": "Gluten", "cal": 155 },
+        { "name": "Thai Curries (Green/Red)", "allergens": "None", "cal": 130 },
+        { "name": "Chocolate Caramel Éclair", "allergens": "Gluten, Dairy", "cal": 320 },
+        { "name": "Hazelnut Delight", "allergens": "Nuts, Dairy", "cal": 380 },
+        { "name": "Tiramisu", "allergens": "Dairy, Gluten", "cal": 290 },
+        { "name": "Basque Cheese Cake", "allergens": "Dairy", "cal": 315 },
+        { "name": "Gajar Ka Halwa", "allergens": "Dairy, Nuts", "cal": 245 }
+    ]`;
 
     let userAllergies = [];
 
-    // Make functions globally available for buttons
+    // Global helper functions
     window.nextStep = (current) => {
         document.getElementById(`step-${current}`).classList.add('hidden');
         document.getElementById(`step-${current + 1}`).classList.remove('hidden');
@@ -115,84 +144,4 @@
 
     window.toggleAllergy = (btn, allergy) => {
         if (userAllergies.includes(allergy)) {
-            userAllergies = userAllergies.filter(a => a !== allergy);
-            btn.classList.remove('selected');
-        } else {
-            userAllergies.push(allergy);
-            btn.classList.add('selected');
-        }
-    };
-
-    window.callGemini = async () => {
-        if (API_KEY === "PASTE_YOUR_API_KEY_HERE" || API_KEY === "") {
-            alert("Please edit the HTML file and add your Google API Key!");
-            return;
-        }
-
-        document.getElementById('step-3').classList.add('hidden');
-        document.getElementById('loading').classList.remove('hidden');
-
-        const userText = document.getElementById('userPrompt').value;
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-        const prompt = `
-        You are a helpful buffet concierge.
-        Here is the menu data: ${menuData}
-        
-        The user has these dietary restrictions: ${userAllergies.join(", ")}.
-        The user says: "${userText}".
-        
-        Task:
-        1. Filter out ANY items that conflict with the restrictions.
-        2. From the remaining items, select the top 3 that best match the user's request.
-        3. Return the result in this strictly valid JSON format:
-        {
-            "reasoning": "A short, friendly sentence explaining why you picked these.",
-            "dishes": [
-                { "name": "Exact Name from Menu", "desc": "A customized 1-sentence description selling this dish to the user based on their mood." }
-            ]
-        }
-        `;
-
-        try {
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-            
-            // Clean up code blocks if Gemini adds them
-            const jsonString = text.replace(/```json/g, '').replace(/```/g, '');
-            const data = JSON.parse(jsonString);
-
-            renderResults(data);
-
-        } catch (error) {
-            console.error(error);
-            alert("The Chef is confused. Please try again. (Check Console for error)");
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('step-3').classList.remove('hidden');
-        }
-    };
-
-    function renderResults(data) {
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('results').classList.remove('hidden');
-
-        document.getElementById('ai-thought').innerText = `"${data.reasoning}"`;
-        
-        const list = document.getElementById('recommendation-list');
-        list.innerHTML = "";
-
-        data.dishes.forEach(dish => {
-            const div = document.createElement('div');
-            div.className = 'menu-item';
-            div.innerHTML = `
-                <div class="item-name">${dish.name}</div>
-                <div class="item-desc">${dish.desc}</div>
-            `;
-            list.appendChild(div);
-        });
-    }
-</script>
-</body>
-</html>
+            userAllergies = userAllergies.filter(a => a !== allergy
