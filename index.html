@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Menu Assistant (Auto-Fix)</title>
+    <title>Event Menu Assistant</title>
     <style>
         :root { --primary: #4285F4; --bg: #f0f4f8; --card: #ffffff; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #333; padding: 20px; max-width: 500px; margin: 0 auto; line-height: 1.5; }
@@ -37,11 +37,15 @@
     </div>
 
     <div id="step-2" class="card hidden">
-        <h2>Dietary Needs?</h2>
-        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Gluten')">🚫 Gluten Free</button>
-        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Dairy')">🚫 Dairy Free</button>
-        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Nuts')">🚫 Nut Free</button>
-        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Vegetarian')">🥬 Vegetarian</button>
+        <h2>Dietary Profile</h2>
+        <p style="font-size: 0.9rem; margin-bottom: 15px;">Select all that apply (or just click Next for none):</p>
+        
+        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Vegetarian')">🥦 Vegetarian</button>
+        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Vegan')">🌱 Vegan</button>
+        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Pescatarian')">🐟 Pescatarian</button>
+        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Flexitarian')">🔄 Flexitarian</button>
+        <button class="btn toggle-btn" onclick="toggleAllergy(this, 'Plant-based')">🌿 Plant-based</button>
+        
         <button class="btn btn-action" onclick="nextStep(2)">Next</button>
     </div>
 
@@ -73,7 +77,7 @@
     // ==========================================
     // CONFIGURATION
     // ==========================================
-    const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY"; // Kept your key here
+    const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY"; // Working Key
 
     const menuData = `[
         { "name": "Smoked Pumpkin Soup", "allergens": "Nuts, Dairy" },
@@ -90,32 +94,30 @@
         { "name": "Basque Cheese Cake", "allergens": "Dairy" }
     ]`;
 
-    let userAllergies = [];
+    let userPreferences = [];
 
     window.nextStep = (current) => {
         document.getElementById(`step-${current}`).classList.add('hidden');
         document.getElementById(`step-${current + 1}`).classList.remove('hidden');
     };
 
-    window.toggleAllergy = (btn, allergy) => {
-        if (userAllergies.includes(allergy)) {
-            userAllergies = userAllergies.filter(a => a !== allergy);
+    window.toggleAllergy = (btn, pref) => {
+        if (userPreferences.includes(pref)) {
+            userPreferences = userPreferences.filter(a => a !== pref);
             btn.classList.remove('selected');
         } else {
-            userAllergies.push(allergy);
+            userPreferences.push(pref);
             btn.classList.add('selected');
         }
     };
 
-    // --- AUTO-DISCOVERY FUNCTION ---
-    // This function asks Google "What models can I use?" before sending the request
+    // --- AUTO-DISCOVERY FUNCTION (UNCHANGED) ---
     async function findValidModel() {
         const log = document.getElementById('status-log');
         log.style.display = 'block';
         log.innerText = "🔍 Auto-detecting valid AI models...";
 
         try {
-            // We fetch the list of ALL models available to your key
             const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`;
             const response = await fetch(listUrl);
             const data = await response.json();
@@ -124,7 +126,6 @@
                 throw new Error("Could not list models. API Key might be invalid.");
             }
 
-            // Find the first model that supports 'generateContent' and is a Gemini model
             const validModel = data.models.find(m => 
                 m.name.includes("gemini") && 
                 m.supportedGenerationMethods && 
@@ -132,7 +133,6 @@
             );
 
             if (validModel) {
-                // Remove the "models/" prefix if it exists to clean up the name
                 const cleanName = validModel.name.replace("models/", "");
                 log.innerText = `✅ Found valid model: ${cleanName}`;
                 return cleanName;
@@ -142,7 +142,7 @@
 
         } catch (e) {
             log.innerText = "⚠️ Auto-detect failed. Defaulting to gemini-1.5-flash";
-            return "gemini-1.5-flash"; // Fallback
+            return "gemini-1.5-flash"; 
         }
     }
 
@@ -154,25 +154,26 @@
         document.getElementById('loading').classList.remove('hidden');
 
         try {
-            // STEP 1: Find the correct model name dynamically
             const modelName = await findValidModel();
             
-            // Update Loading Text
             document.getElementById('loading-text').innerText = `Consulting Chef (${modelName})...`;
 
             const userText = document.getElementById('userPrompt').value;
-            
-            // Construct the API URL using the discovered model
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
 
+            // UPDATED PROMPT FOR NEW DIETARY LOGIC
             const promptText = `
             You are a buffet assistant.
             Menu: ${menuData}
-            User Restrictions: ${userAllergies.join(", ")}
+            User Dietary Profile: ${userPreferences.join(", ")}
             User Request: "${userText}"
             
             Task: Pick 3 items. 
-            IMPORTANT: Return ONLY valid JSON. No markdown formatting.
+            Instructions:
+            1. Strict Adherence: You must respect the 'User Dietary Profile' (e.g. if Vegan, do not suggest dairy/meat items. If Pescatarian, fish is allowed).
+            2. Selection: Pick the top 3 items that best fit the User Request.
+            3. IMPORTANT: Return ONLY valid JSON. No markdown formatting.
+            
             JSON Structure:
             {
                 "reasoning": "One sentence explaining choice.",
@@ -184,7 +185,6 @@
                 contents: [{ parts: [{ text: promptText }] }]
             };
 
-            // STEP 2: Send the Request
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -199,7 +199,6 @@
 
             const aiText = data.candidates[0].content.parts[0].text;
             
-            // Clean and Parse JSON
             const firstBrace = aiText.indexOf('{');
             const lastBrace = aiText.lastIndexOf('}');
             if (firstBrace === -1) throw new Error("AI did not return JSON");
