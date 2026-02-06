@@ -70,13 +70,12 @@
 
 <script>
     // ==========================================
-    // API KEY CONFIGURATION
+    // CONFIGURATION
     // ==========================================
     const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY";
     
-    // We are using the Direct REST API URL (No library needed)
-    // Using 'gemini-1.5-flash' which is the standard, fast model
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    // UPDATED: Switched to 'gemini-pro' (The universal model)
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
 
     const menuData = `[
         { "name": "Smoked Pumpkin Soup", "allergens": "Nuts, Dairy" },
@@ -110,7 +109,7 @@
         }
     };
 
-    // --- THE NEW DIRECT API CALL FUNCTION ---
+    // --- DIRECT API CALL FUNCTION ---
     window.callGeminiDirect = async () => {
         const errorBox = document.getElementById('error-box');
         errorBox.classList.add('hidden');
@@ -143,7 +142,6 @@
         };
 
         try {
-            // DIRECT FETCH REQUEST (Replaces the Google Library)
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -152,7 +150,7 @@
 
             const data = await response.json();
 
-            // Check for API Errors (400, 404, etc)
+            // Check for API Errors
             if (!response.ok) {
                 throw new Error(`API Error: ${data.error?.message || response.statusText}`);
             }
