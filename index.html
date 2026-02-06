@@ -16,6 +16,10 @@
         
         textarea { width: 90%; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-family: inherit; margin: 10px 0; resize: vertical; min-height: 80px; font-size: 1rem;}
         
+        /* Model Selector Styling */
+        select { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-size: 1rem; }
+        label { display: block; text-align: left; font-size: 0.8rem; color: #666; margin-bottom: 5px; font-weight: bold; }
+
         .btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 50px; background: #fff; font-size: 1rem; cursor: pointer; transition: 0.2s; font-weight: 600; color: #555; }
         .btn.selected { background: #d0e1fd; color: var(--primary); border-color: var(--primary); }
         .btn-action { background: var(--primary); color: white; border: none; margin-top: 15px; }
@@ -49,7 +53,17 @@
 
     <div id="step-3" class="card hidden">
         <h2>What's the vibe?</h2>
+        
         <textarea id="userPrompt" placeholder="e.g. I want something spicy..."></textarea>
+        
+        <label for="modelSelect">System Brain (Change if error):</label>
+        <select id="modelSelect">
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fastest)</option>
+            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Latest)</option>
+            <option value="gemini-1.0-pro">Gemini 1.0 Pro (Stable)</option>
+            <option value="gemini-pro">Gemini Pro (Legacy)</option>
+        </select>
+
         <button class="btn btn-action" onclick="callGeminiDirect()">Ask the Chef</button>
         <div id="error-box" class="hidden"></div>
     </div>
@@ -74,8 +88,8 @@
     // ==========================================
     const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY";
     
-    // UPDATED: Switched to 'gemini-pro' (The universal model)
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+    // We will build the URL dynamically based on the dropdown selection
+    const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 
     const menuData = `[
         { "name": "Smoked Pumpkin Soup", "allergens": "Nuts, Dairy" },
@@ -115,87 +129,3 @@
         errorBox.classList.add('hidden');
         document.getElementById('step-3').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
-
-        const userText = document.getElementById('userPrompt').value;
-
-        // Construct the prompt
-        const promptText = `
-        You are a buffet assistant.
-        Menu: ${menuData}
-        User Restrictions: ${userAllergies.join(", ")}
-        User Request: "${userText}"
-        
-        Task: Pick 3 items. 
-        IMPORTANT: Return ONLY valid JSON. No markdown formatting.
-        JSON Structure:
-        {
-            "reasoning": "One sentence explaining choice.",
-            "dishes": [ { "name": "Dish Name", "desc": "Short description" } ]
-        }
-        `;
-
-        // The Data Payload
-        const payload = {
-            contents: [{
-                parts: [{ text: promptText }]
-            }]
-        };
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-
-            // Check for API Errors
-            if (!response.ok) {
-                throw new Error(`API Error: ${data.error?.message || response.statusText}`);
-            }
-
-            // Extract the text answer
-            const aiText = data.candidates[0].content.parts[0].text;
-            console.log("Raw AI Response:", aiText);
-
-            // Clean and Parse JSON
-            const firstBrace = aiText.indexOf('{');
-            const lastBrace = aiText.lastIndexOf('}');
-            if (firstBrace === -1) throw new Error("AI did not return JSON");
-            
-            const cleanJson = aiText.substring(firstBrace, lastBrace + 1);
-            const resultData = JSON.parse(cleanJson);
-
-            renderResults(resultData);
-
-        } catch (error) {
-            console.error(error);
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('step-3').classList.remove('hidden');
-            errorBox.classList.remove('hidden');
-            errorBox.innerText = "⚠️ Error: " + error.message;
-        }
-    };
-
-    function renderResults(data) {
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('results').classList.remove('hidden');
-
-        document.getElementById('ai-thought').innerText = data.reasoning;
-        const list = document.getElementById('recommendation-list');
-        list.innerHTML = "";
-
-        data.dishes.forEach(dish => {
-            const div = document.createElement('div');
-            div.className = 'menu-item';
-            div.innerHTML = `
-                <div class="item-name">${dish.name}</div>
-                <div class="item-desc">${dish.desc}</div>
-            `;
-            list.appendChild(div);
-        });
-    }
-</script>
-</body>
-</html>
