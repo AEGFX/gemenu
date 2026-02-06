@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Menu Assistant</title>
+    <title>Event Menu Assistant (Auto-Fix)</title>
     <style>
         :root { --primary: #4285F4; --bg: #f0f4f8; --card: #ffffff; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #333; padding: 20px; max-width: 500px; margin: 0 auto; line-height: 1.5; }
@@ -12,14 +12,8 @@
         .hidden { display: none !important; }
         
         h1 { color: var(--primary); margin-bottom: 10px; margin-top: 0; }
-        h2 { font-size: 1.2rem; margin-bottom: 1rem; color: #444; }
-        
         textarea { width: 90%; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-family: inherit; margin: 10px 0; resize: vertical; min-height: 80px; font-size: 1rem;}
         
-        /* Model Selector Styling */
-        select { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-size: 1rem; }
-        label { display: block; text-align: left; font-size: 0.8rem; color: #666; margin-bottom: 5px; font-weight: bold; }
-
         .btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 50px; background: #fff; font-size: 1rem; cursor: pointer; transition: 0.2s; font-weight: 600; color: #555; }
         .btn.selected { background: #d0e1fd; color: var(--primary); border-color: var(--primary); }
         .btn-action { background: var(--primary); color: white; border: none; margin-top: 15px; }
@@ -29,8 +23,8 @@
 
         .menu-item { text-align: left; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
         .item-name { font-weight: bold; font-size: 1.1rem; color: #222; }
-        .item-desc { font-size: 0.95rem; color: #555; margin-top: 5px; }
         
+        #status-log { background: #e3f2fd; color: #1565c0; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: left; font-size: 0.8rem; font-family: monospace; display: none; }
         #error-box { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: left; font-size: 0.9rem; border: 1px solid #ef9a9a;}
     </style>
 </head>
@@ -53,24 +47,17 @@
 
     <div id="step-3" class="card hidden">
         <h2>What's the vibe?</h2>
-        
         <textarea id="userPrompt" placeholder="e.g. I want something spicy..."></textarea>
+        <button class="btn btn-action" onclick="callGeminiAuto()">Ask the Chef</button>
         
-        <label for="modelSelect">System Brain (Change if error):</label>
-        <select id="modelSelect">
-            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fastest)</option>
-            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Latest)</option>
-            <option value="gemini-1.0-pro">Gemini 1.0 Pro (Stable)</option>
-            <option value="gemini-pro">Gemini Pro (Legacy)</option>
-        </select>
-
-        <button class="btn btn-action" onclick="callGeminiDirect()">Ask the Chef</button>
+        <div id="status-log"></div>
         <div id="error-box" class="hidden"></div>
     </div>
 
     <div id="loading" class="card hidden">
         <h2>Consulting the Chef...</h2>
         <div class="loader"></div>
+        <p id="loading-text">Connecting to Google...</p>
     </div>
 
     <div id="results" class="hidden">
@@ -86,10 +73,7 @@
     // ==========================================
     // CONFIGURATION
     // ==========================================
-    const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY";
-    
-    // We will build the URL dynamically based on the dropdown selection
-    const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
+    const API_KEY = "AIzaSyCuvo9oZ3sODIZ_6FAFD4185UQWum498iY"; // Kept your key here
 
     const menuData = `[
         { "name": "Smoked Pumpkin Soup", "allergens": "Nuts, Dairy" },
@@ -123,45 +107,84 @@
         }
     };
 
-    // --- DIRECT API CALL FUNCTION ---
-    window.callGeminiDirect = async () => {
+    // --- AUTO-DISCOVERY FUNCTION ---
+    // This function asks Google "What models can I use?" before sending the request
+    async function findValidModel() {
+        const log = document.getElementById('status-log');
+        log.style.display = 'block';
+        log.innerText = "🔍 Auto-detecting valid AI models...";
+
+        try {
+            // We fetch the list of ALL models available to your key
+            const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`;
+            const response = await fetch(listUrl);
+            const data = await response.json();
+
+            if (!data.models) {
+                throw new Error("Could not list models. API Key might be invalid.");
+            }
+
+            // Find the first model that supports 'generateContent' and is a Gemini model
+            const validModel = data.models.find(m => 
+                m.name.includes("gemini") && 
+                m.supportedGenerationMethods && 
+                m.supportedGenerationMethods.includes("generateContent")
+            );
+
+            if (validModel) {
+                // Remove the "models/" prefix if it exists to clean up the name
+                const cleanName = validModel.name.replace("models/", "");
+                log.innerText = `✅ Found valid model: ${cleanName}`;
+                return cleanName;
+            } else {
+                throw new Error("No Gemini models found enabled for this key.");
+            }
+
+        } catch (e) {
+            log.innerText = "⚠️ Auto-detect failed. Defaulting to gemini-1.5-flash";
+            return "gemini-1.5-flash"; // Fallback
+        }
+    }
+
+    // --- MAIN API CALL ---
+    window.callGeminiAuto = async () => {
         const errorBox = document.getElementById('error-box');
         errorBox.classList.add('hidden');
         document.getElementById('step-3').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
 
-        const userText = document.getElementById('userPrompt').value;
-        const selectedModel = document.getElementById('modelSelect').value;
-
-        // Construct the URL dynamically
-        const API_URL = `${BASE_URL}${selectedModel}:generateContent?key=${API_KEY}`;
-
-        // Construct the prompt
-        const promptText = `
-        You are a buffet assistant.
-        Menu: ${menuData}
-        User Restrictions: ${userAllergies.join(", ")}
-        User Request: "${userText}"
-        
-        Task: Pick 3 items. 
-        IMPORTANT: Return ONLY valid JSON. No markdown formatting.
-        JSON Structure:
-        {
-            "reasoning": "One sentence explaining choice.",
-            "dishes": [ { "name": "Dish Name", "desc": "Short description" } ]
-        }
-        `;
-
-        // The Data Payload
-        const payload = {
-            contents: [{
-                parts: [{ text: promptText }]
-            }]
-        };
-
         try {
-            console.log("Trying model:", selectedModel);
+            // STEP 1: Find the correct model name dynamically
+            const modelName = await findValidModel();
             
+            // Update Loading Text
+            document.getElementById('loading-text').innerText = `Consulting Chef (${modelName})...`;
+
+            const userText = document.getElementById('userPrompt').value;
+            
+            // Construct the API URL using the discovered model
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
+
+            const promptText = `
+            You are a buffet assistant.
+            Menu: ${menuData}
+            User Restrictions: ${userAllergies.join(", ")}
+            User Request: "${userText}"
+            
+            Task: Pick 3 items. 
+            IMPORTANT: Return ONLY valid JSON. No markdown formatting.
+            JSON Structure:
+            {
+                "reasoning": "One sentence explaining choice.",
+                "dishes": [ { "name": "Dish Name", "desc": "Short description" } ]
+            }
+            `;
+
+            const payload = {
+                contents: [{ parts: [{ text: promptText }] }]
+            };
+
+            // STEP 2: Send the Request
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -170,16 +193,12 @@
 
             const data = await response.json();
 
-            // Check for API Errors
             if (!response.ok) {
-                // If it fails, throw error so we can show it
-                throw new Error(`Model ${selectedModel} failed: ${data.error?.message || response.statusText}`);
+                throw new Error(`API Error: ${data.error?.message || response.statusText}`);
             }
 
-            // Extract the text answer
             const aiText = data.candidates[0].content.parts[0].text;
-            console.log("Raw AI Response:", aiText);
-
+            
             // Clean and Parse JSON
             const firstBrace = aiText.indexOf('{');
             const lastBrace = aiText.lastIndexOf('}');
@@ -195,7 +214,7 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('step-3').classList.remove('hidden');
             errorBox.classList.remove('hidden');
-            errorBox.innerText = "⚠️ " + error.message + "\n\n👉 TIP: Try selecting a different 'System Brain' in the dropdown above!";
+            errorBox.innerText = "⚠️ " + error.message;
         }
     };
 
