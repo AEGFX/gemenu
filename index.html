@@ -37,20 +37,20 @@
             display: block; 
         }
         
-        /* Gemini Logo: Lifted higher with top: -5px */
+        /* Gemini Logo: Lifted higher (from -5px to -8px) */
         .gemini-inline-logo {
             height: 1.5em; 
             vertical-align: middle; 
             margin: 0 8px; 
             position: relative;
-            top: -5px; /* Moves the logo UP */
+            top: -8px; /* UPDATED: Higher up */
         }
 
-        /* Headings: Updated to Bold (700) */
+        /* Headings */
         h1 { 
             color: var(--text); 
             margin-bottom: 10px; 
-            font-weight: 700; /* BOLD */
+            font-weight: 700; 
             font-size: 1.8rem; 
         }
         
@@ -58,7 +58,7 @@
             font-size: 1.4rem; 
             margin-bottom: 0.5rem; 
             color: var(--text); 
-            font-weight: 700; /* BOLD */
+            font-weight: 700; 
         }
         
         p { color: #5f6368; margin-bottom: 30px; font-size: 1.1rem; }
@@ -69,7 +69,7 @@
             color: #70757a;
             margin-bottom: 20px;
             margin-top: 0;
-            font-weight: 400; /* Keep subtitle normal */
+            font-weight: 400; 
         }
         
         /* Inputs & Buttons */
@@ -87,6 +87,7 @@
         }
         textarea:focus { border-color: var(--primary); outline: none; }
         
+        /* Standard Toggle Buttons (Full Width) */
         .btn { 
             display: block; 
             width: 100%; 
@@ -110,22 +111,21 @@
             font-weight: 600;
         }
         
-        /* Action Button (Blue) */
+        /* Action Button Base Style (Blue) */
         .btn-action { 
             background: var(--primary); 
             color: white; 
             border: none; 
-            margin-top: 25px; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
         .btn-action:hover { background: #3367d6; }
 
-        /* "Get Started" Button (Smaller) */
-        #btn-start {
-            width: auto;           
-            padding: 12px 30px;    
-            min-width: 180px;      
-            margin: 30px auto 0 auto; 
+        /* NEW SHARED CLASS: For Get Started, Next, and Ask Gemini */
+        .btn-centered-action {
+            width: auto;           /* Not full width */
+            padding: 12px 30px;    /* Comfortable padding */
+            min-width: 180px;      /* Minimum size */
+            margin: 30px auto 0 auto; /* Center it */
             display: block;
         }
         
@@ -159,11 +159,11 @@
             help you decide
         </p>
 
-        <button id="btn-start" class="btn btn-action" onclick="nextStep(1)">Get Started</button>
+        <button class="btn btn-action btn-centered-action" onclick="nextStep(1)">Get Started</button>
     </div>
 
     <div id="step-2" class="container hidden">
-        <h2>Any dietaries?</h2>
+        <h2>Any Dietaries?</h2>
         <p class="subtitle">Select all that apply</p>
         
         <button class="btn" id="btn-none" onclick="selectNone(this)">🚫 None</button>
@@ -174,14 +174,14 @@
         <button class="btn toggle-btn" onclick="toggleDiet(this, 'Flexitarian')">🔄 Flexitarian</button>
         <button class="btn toggle-btn" onclick="toggleDiet(this, 'Plant-based')">🌿 Plant-based</button>
         
-        <button class="btn btn-action" onclick="nextStep(2)">Next</button>
+        <button class="btn btn-action btn-centered-action" onclick="nextStep(2)">Next</button>
     </div>
 
     <div id="step-3" class="container hidden">
         <h2>What's the vibe?</h2>
         <textarea id="userPrompt" placeholder="e.g. I want something spicy..."></textarea>
         
-        <button class="btn btn-action" onclick="callGeminiAuto()">Ask Gemini</button>
+        <button class="btn btn-action btn-centered-action" onclick="callGeminiAuto()">Ask Gemini</button>
         
         <div id="status-log"></div>
         <div id="error-box" class="hidden"></div>
