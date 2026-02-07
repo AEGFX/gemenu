@@ -28,22 +28,14 @@
         .container { padding: 10px; }
         .hidden { display: none !important; }
         
-        /* --- LOGO STYLING (UPDATED) --- */
-        .event-logo { 
-            max-width: 100%;      /* 1. Prevent falling off screen */
-            height: auto;         /* 2. Maintain aspect ratio */
-            max-height: 100px;    /* 3. Limit height (adjust if needed) */
-            margin: 0 auto 20px auto; /* 4. Center horizontally */
+        /* --- NEW SPLASH IMAGE STYLING --- */
+        .splash-logo { 
+            width: 100%;          /* Fill the container width */
+            max-width: 100%;      /* Ensure it never overflows */
+            height: auto;         /* Maintain aspect ratio */
+            margin: 0 auto 30px auto; /* Center it + add space below */
             display: block; 
-        }
-        
-        /* Gemini Logo: Lifted higher (top: -8px) */
-        .gemini-inline-logo {
-            height: 1.5em; 
-            vertical-align: middle; 
-            margin: 0 8px; 
-            position: relative;
-            top: -8px; 
+            border-radius: 12px;  /* Optional: Soft corners look nice */
         }
 
         /* Headings: Bold */
@@ -148,16 +140,7 @@
 <body>
 
     <div id="step-1" class="container">
-        
-        <img src="images/eventLogo.png" alt="Event Logo" class="event-logo">
-
-        <h1>Welcome to Lunch</h1>
-        
-        <p>
-            Let 
-            <img src="images/geminiLogo.png" alt="Gemini" class="gemini-inline-logo">
-            help you decide
-        </p>
+        <img src="images/logoSplash.png" alt="Welcome Splash" class="splash-logo">
 
         <button class="btn btn-action btn-centered-action" onclick="nextStep(1)">Get Started</button>
     </div>
@@ -302,7 +285,7 @@
                 throw new Error("API Error: " + (data.error.message || "Unknown error"));
             }
 
-            // 2. Check if the response is empty (Prevents the 'reading 0' crash)
+            // 2. Check if the response is empty
             if (!data.candidates || data.candidates.length === 0) {
                 console.error("Empty Candidates:", data);
                 throw new Error("The AI returned an empty response. Please check your Cloudflare Secret (GEMINI_API_KEY).");
