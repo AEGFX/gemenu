@@ -30,56 +30,49 @@
         
         /* --- NEW SPLASH IMAGE STYLING --- */
         .splash-logo { 
-            width: 100%;          /* Fill the container width */
-            max-width: 100%;      /* Ensure it never overflows */
-            height: auto;         /* Maintain aspect ratio */
-            margin: 0 auto 30px auto; /* Center it + add space below */
+            width: 100%;          
+            max-width: 100%;      
+            height: auto;         
+            margin: 0 auto 30px auto; 
             display: block; 
-            border-radius: 12px;  /* Optional: Soft corners look nice */
+            border-radius: 12px;  
         }
 
-        /* Headings: Bold */
-        h1 { 
-            color: var(--text); 
-            margin-bottom: 10px; 
-            font-weight: 700; 
-            font-size: 1.8rem; 
-        }
-        
-        h2 { 
-            font-size: 1.4rem; 
-            margin-bottom: 0.5rem; 
-            color: var(--text); 
-            font-weight: 700; 
-        }
-        
+        /* Headings */
+        h1 { color: var(--text); margin-bottom: 10px; font-weight: 700; font-size: 1.8rem; }
+        h2 { font-size: 1.4rem; margin-bottom: 0.5rem; color: var(--text); font-weight: 700; }
         p { color: #5f6368; margin-bottom: 30px; font-size: 1.1rem; }
+        .subtitle { font-size: 0.9rem; color: #70757a; margin-bottom: 20px; margin-top: 0; font-weight: 400; }
         
-        /* Helper text for dietaries */
-        .subtitle {
-            font-size: 0.9rem;
-            color: #70757a;
-            margin-bottom: 20px;
-            margin-top: 0;
-            font-weight: 400; 
-        }
-        
-        /* Inputs */
-        textarea { 
+        /* Inputs (Text Area & Text Field) */
+        textarea, input[type="text"] { 
             width: 90%; 
             padding: 15px; 
             border: 2px solid #dadce0; 
             border-radius: 12px; 
             font-family: inherit; 
             margin: 10px auto; 
-            resize: vertical; 
-            min-height: 80px; 
             font-size: 1rem;
             display: block;
+            box-sizing: border-box; /* Ensures padding doesn't break width */
         }
-        textarea:focus { border-color: var(--primary); outline: none; }
+        textarea { resize: vertical; min-height: 80px; }
+        textarea:focus, input[type="text"]:focus { border-color: var(--primary); outline: none; }
         
-        /* Standard Toggle Buttons (Full Width) */
+        /* Specific styling for the "Other" input box */
+        #other-diet-input {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-color: var(--primary); /* Highlight it slightly so they know it's active */
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Standard Toggle Buttons */
         .btn { 
             display: block; 
             width: 100%; 
@@ -103,7 +96,7 @@
             font-weight: 600;
         }
         
-        /* Action Button Base Style (Blue) */
+        /* Action Button (Blue) */
         .btn-action { 
             background: var(--primary); 
             color: white; 
@@ -112,12 +105,11 @@
         }
         .btn-action:hover { background: #3367d6; }
 
-        /* Shared Class for Action Buttons (Centered & Sized) */
         .btn-centered-action {
-            width: auto;           /* Not full width */
-            padding: 12px 30px;    /* Comfortable padding */
-            min-width: 180px;      /* Minimum size */
-            margin: 30px auto 0 auto; /* Center it */
+            width: auto;           
+            padding: 12px 30px;    
+            min-width: 180px;      
+            margin: 30px auto 0 auto; 
             display: block;
         }
         
@@ -132,8 +124,6 @@
         
         #ai-thought { background: #f1f3f4; padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: left; color: #3c4043; font-style: italic;}
         
-        /* Logs */
-        #status-log { display: none; font-size: 0.75rem; color: #aaa; margin-top: 10px; }
         #error-box { background: #fce8e6; color: #c5221f; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: left; font-size: 0.9rem; }
     </style>
 </head>
@@ -157,6 +147,9 @@
         <button class="btn toggle-btn" onclick="toggleDiet(this, 'Flexitarian')">🔄 Flexitarian</button>
         <button class="btn toggle-btn" onclick="toggleDiet(this, 'Plant-based')">🌿 Plant-based</button>
         
+        <button class="btn toggle-btn" id="btn-other" onclick="toggleOther(this)">✏️ Other...</button>
+        <input type="text" id="other-diet-input" class="hidden" placeholder="e.g. Gluten Free, Nut Allergy...">
+        
         <button class="btn btn-action btn-centered-action" onclick="nextStep(2)">Next</button>
     </div>
 
@@ -166,7 +159,6 @@
         
         <button class="btn btn-action btn-centered-action" onclick="callCloudflareWorker()">Ask Gemini</button>
         
-        <div id="status-log"></div>
         <div id="error-box" class="hidden"></div>
     </div>
 
@@ -206,6 +198,7 @@
     ]`;
 
     let userPreferences = [];
+    let isOtherSelected = false;
 
     window.nextStep = (current) => {
         document.getElementById(`step-${current}`).classList.add('hidden');
@@ -214,18 +207,22 @@
 
     // --- DIETARY BUTTON LOGIC ---
     window.selectNone = (btn) => {
-        // Clear array
+        // Clear preferences
         userPreferences = [];
+        isOtherSelected = false;
         
-        // Deselect all others
+        // Deselect all buttons
         document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected'));
+        
+        // Hide Other Input
+        document.getElementById('other-diet-input').classList.add('hidden');
+        document.getElementById('other-diet-input').value = "";
         
         // Select 'None'
         btn.classList.add('selected');
     };
 
     window.toggleDiet = (btn, pref) => {
-        // Deselect 'None' automatically if you pick a diet
         document.getElementById('btn-none').classList.remove('selected');
 
         if (userPreferences.includes(pref)) {
@@ -234,6 +231,26 @@
         } else {
             userPreferences.push(pref);
             btn.classList.add('selected');
+        }
+    };
+
+    // --- NEW OTHER BUTTON LOGIC ---
+    window.toggleOther = (btn) => {
+        document.getElementById('btn-none').classList.remove('selected');
+        const inputField = document.getElementById('other-diet-input');
+
+        if (isOtherSelected) {
+            // Turn off
+            isOtherSelected = false;
+            btn.classList.remove('selected');
+            inputField.classList.add('hidden');
+            inputField.value = ""; // Clear text if they uncheck it
+        } else {
+            // Turn on
+            isOtherSelected = true;
+            btn.classList.add('selected');
+            inputField.classList.remove('hidden');
+            inputField.focus();
         }
     };
 
@@ -247,11 +264,20 @@
         try {
             const userText = document.getElementById('userPrompt').value;
             
+            // CAPTURE OTHER INPUT
+            let finalPreferences = [...userPreferences];
+            if (isOtherSelected) {
+                const otherText = document.getElementById('other-diet-input').value.trim();
+                if (otherText) {
+                    finalPreferences.push("Other: " + otherText);
+                }
+            }
+
             // We send the full instruction set to Cloudflare
             const promptText = `
             You are a helpful buffet assistant for an event.
             Menu: ${menuData}
-            User Dietary Profile: ${userPreferences.length > 0 ? userPreferences.join(", ") : "None"}
+            User Dietary Profile: ${finalPreferences.length > 0 ? finalPreferences.join(", ") : "None"}
             User Request/Vibe: "${userText}"
             
             Task: Pick 3 items. 
@@ -280,18 +306,15 @@
             const data = await response.json();
 
             // --- ERROR CHECKING LOGIC ---
-            // 1. Check for Cloudflare/Google errors
             if (data.error) {
                 throw new Error("API Error: " + (data.error.message || "Unknown error"));
             }
 
-            // 2. Check if the response is empty
             if (!data.candidates || data.candidates.length === 0) {
                 console.error("Empty Candidates:", data);
                 throw new Error("The AI returned an empty response. Please check your Cloudflare Secret (GEMINI_API_KEY).");
             }
 
-            // Safe to read now
             const aiText = data.candidates[0].content.parts[0].text;
             
             const firstBrace = aiText.indexOf('{');
